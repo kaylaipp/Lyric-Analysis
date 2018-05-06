@@ -1,7 +1,7 @@
 ---
 title: "Lyric Analysis"
 runtime: shiny
-output: beamer_presentation
+output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
