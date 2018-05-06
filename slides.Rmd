@@ -1,0 +1,381 @@
+---
+title: "Lyric Analysis"
+runtime: shiny
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE,message=FALSE, warning=FALSE)
+
+library(shinydashboard)
+library(shinyWidgets)
+library(tidyverse)
+library(spotifyr)
+library(Rspotify)
+library(tuber)
+library(keras)
+library(rnn)
+library(reshape2)
+library(geniusR)
+library(shinyjs)
+library(tidytext)
+library(shinycssloaders)
+library(devtools)
+library(plotly) 
+library(ggplot2)
+library(tidytext)
+library(glue)
+library(stringr)
+install_github("charlie86/spotifyr")
+require(gridExtra)
+#install_github('hadley/ggplot2')
+
+Sys.setenv(SPOTIFY_CLIENT_ID = '2f31c3a3fd8b4b899d9d7f50e47c7e70')
+Sys.setenv(SPOTIFY_CLIENT_SECRET = 'baf8422a5f664f229a79cb4005f24772')
+
+#RSpotify authentication
+#my_oauth <- spotifyOAuth("lyric_prediction","2f31c3a3fd8b4b899d9d7f50e47c7e70","baf8422a5f664f229a79cb4005f24772")
+keys <- spotifyOAuth("lyric_prediction","2f31c3a3fd8b4b899d9d7f50e47c7e70","baf8422a5f664f229a79cb4005f24772")
+save(keys, file="keys")
+load("keys")
+```
+
+## Introduction
+
+This app utilizes the Spotify API to search your favorite artists and perform several quantiative tests that analyze popularity of songs against factors such as tempo, liveness, dancability etc. It also uses the Genius API to grab song lyrics and perform sentiment analysis. In addition, you can also see visuals of the 
+top songs from every decade starting from the 60's til now. 
+
+## Today's Top Songs
+
+```{r}
+###################################
+#top songs today
+###################################
+      top <- get_playlist_audio_features('spotify', '37i9dQZF1DXcBWIGoYBM5M')
+      #print(top)
+      
+      #get popularity, track name, valence & energy columns 
+      top <- top %>%
+          select(track_name, energy, valence, track_popularity, artist_name)
+      
+      gg1 <- ggplot(top, aes(x=valence, y=energy)) +
+              #geom_point(top, mapping=aes(x=valence, y=energy)) +
+              geom_point(top, mapping=aes(x=valence, y=energy, track_name = track_name, artist_name = artist_name, colour = artist_name)) +
+              xlim(c(0, 1)) +
+              ylim(c(0, 1)) +
+              labs(
+                   y="Energy",
+                   x="Valence") +
+              geom_vline(xintercept = 0.5) + geom_hline(yintercept = 0.5) +
+              annotate("text", x = 0.05, y = 0, label = "Depressing") + 
+              annotate("text", x = 0.03, y = 0.98, label = "Turbulent") + 
+              annotate("text", x = 0.98, y = 0.98, label = "Happy") + 
+              annotate("text", x = 0.98, y = 0, label = "Mellow")
+      ggplotly(gg1) %>% config(displayModeBar = F)
+```
+
+## 2000's Hits 
+
+```{r}
+      #table of top songs & their features
+      top <- get_playlist_audio_features('myplay.com', '2f6tXtN0XesjONxicAzMIw')
+      #View(eighties)
+      
+      #get popularity, track name, valence & energy columns 
+      top <- top %>%
+          select(track_name, energy, valence, track_popularity, artist_name)
+      
+      gg2 <- ggplot(top, aes(x=valence, y=energy)) +
+              geom_point(top, mapping=aes(x=valence, y=energy, track_name = track_name, artist_name = artist_name, colour = artist_name)) +
+              xlim(c(0, 1)) +
+              ylim(c(0, 1)) +
+              labs(
+                   y="Energy",
+                   x="Valence") +
+              geom_vline(xintercept = 0.5) + geom_hline(yintercept = 0.5) +
+              annotate("text", x = 0.05, y = 0, label = "Depressing") + 
+              annotate("text", x = 0.03, y = 0.98, label = "Turbulent") + 
+              annotate("text", x = 0.98, y = 0.98, label = "Happy") + 
+              annotate("text", x = 0.98, y = 0, label = "Mellow")
+      
+      ggplotly(gg2) %>% config(displayModeBar = F)
+```
+
+## 90's Top Hits
+
+```{r}
+      #table of top songs & their features
+      top <- get_playlist_audio_features('myplay.com', '3C64V048fGyQfCjmu9TIGA')
+      #View(eighties)
+      
+      #get popularity, track name, valence & energy columns 
+      top <- top %>%
+          select(track_name, energy, valence, track_popularity, artist_name)
+      
+      gg3 <- ggplot(top, aes(x=valence, y=energy)) +
+              geom_point(top, mapping=aes(x=valence, y=energy, track_name = track_name, artist_name = artist_name, colour = artist_name)) +
+              xlim(c(0, 1)) +
+              ylim(c(0, 1)) +
+              labs(
+                   y="Energy",
+                   x="Valence") +
+              geom_vline(xintercept = 0.5) + geom_hline(yintercept = 0.5) +
+              annotate("text", x = 0.05, y = 0, label = "Depressing") + 
+              annotate("text", x = 0.03, y = 0.98, label = "Turbulent") + 
+              annotate("text", x = 0.98, y = 0.98, label = "Happy") + 
+              annotate("text", x = 0.98, y = 0, label = "Mellow")
+      
+      ggplotly(gg3) %>% config(displayModeBar = F)
+```
+
+## 80's Top Hits
+
+```{r}
+      #table of top songs & their features
+      top <- get_playlist_audio_features('myplay.com', '19PgP2QSGPcm6Ve8VhbtpG')
+      #View(eighties)
+      
+      #get popularity, track name, valence & energy columns 
+      top <- top %>%
+          select(track_name, energy, valence, track_popularity, artist_name)
+      
+      gg4 <- ggplot(top, aes(x=valence, y=energy)) +
+              geom_point(top, mapping=aes(x=valence, y=energy, track_name = track_name, artist_name = artist_name, colour = artist_name)) +
+              xlim(c(0, 1)) +
+              ylim(c(0, 1)) +
+              labs(
+                   y="Energy",
+                   x="Valence") +
+              geom_vline(xintercept = 0.5) + geom_hline(yintercept = 0.5) +
+              annotate("text", x = 0.05, y = 0, label = "Depressing") + 
+              annotate("text", x = 0.03, y = 0.98, label = "Turbulent") + 
+              annotate("text", x = 0.98, y = 0.98, label = "Happy") + 
+              annotate("text", x = 0.98, y = 0, label = "Mellow")
+      
+      ggplotly(gg4) %>% config(displayModeBar = F)
+```
+
+## 70's Top Songs
+
+```{r}
+      #table of top songs & their features
+      top <- get_playlist_audio_features('myplay.com', '5KmBulox9POMt9hOt3VV1x')
+      #View(eighties)
+      
+      #get popularity, track name, valence & energy columns 
+      top <- top %>%
+          select(track_name, energy, valence, track_popularity, artist_name)
+      
+      gg5 <- ggplot(top, aes(x=valence, y=energy)) +
+              geom_point(top, mapping=aes(x=valence, y=energy, track_name = track_name, artist_name = artist_name, colour = artist_name)) +
+              xlim(c(0, 1)) +
+              ylim(c(0, 1)) +
+              labs(
+                   y="Energy",
+                   x="Valence") +
+              geom_vline(xintercept = 0.5) + geom_hline(yintercept = 0.5) +
+              annotate("text", x = 0.05, y = 0, label = "Depressing") + 
+              annotate("text", x = 0.03, y = 0.98, label = "Turbulent") + 
+              annotate("text", x = 0.98, y = 0.98, label = "Happy") + 
+              annotate("text", x = 0.98, y = 0, label = "Mellow")
+      
+      ggplotly(gg5) %>% config(displayModeBar = F)
+```
+
+
+## 60's Top Songs
+
+```{r}
+      #table of top songs & their features
+      top <- get_playlist_audio_features('myplay.com', '31LVuXlRYRVq4Z6krWGedS')
+      #View(eighties)
+      
+      #get popularity, track name, valence & energy columns 
+      top <- top %>%
+          select(track_name, energy, valence, track_popularity, artist_name)
+      
+      gg6 <- ggplot(top, aes(x=valence, y=energy)) +
+              geom_point(top, mapping=aes(x=valence, y=energy, track_name = track_name, artist_name = artist_name, colour = artist_name)) +
+              xlim(c(0, 1)) +
+              ylim(c(0, 1)) +
+              labs(
+                   y="Energy",
+                   x="Valence") +
+              geom_vline(xintercept = 0.5) + geom_hline(yintercept = 0.5) +
+              annotate("text", x = 0.05, y = 0, label = "Depressing") + 
+              annotate("text", x = 0.03, y = 0.98, label = "Turbulent") + 
+              annotate("text", x = 0.98, y = 0.98, label = "Happy") + 
+              annotate("text", x = 0.98, y = 0, label = "Mellow")
+      
+      ggplotly(gg6) %>% config(displayModeBar = F)
+```
+
+## Side by Side Comparisons
+
+```{r}
+grid.arrange(gg1 + theme(legend.position='none')+ ggtitle("Today's Top Hits"),  
+             gg2 + theme(legend.position='none')+ ggtitle("2000's Top Hits"), 
+             gg3 + theme(legend.position='none')+ ggtitle("90's Top Hits"), 
+             gg4 + theme(legend.position='none')+ ggtitle("80's Top Hits"),
+             gg5 + theme(legend.position='none')+ ggtitle("70's Top Hits"),
+             gg6 + theme(legend.position='none')+ ggtitle("60's Top Hits"), ncol=3)
+```
+
+## Analysis
+
+- Top songs can say a lot about a time period and the overall mood/perspective
+of the generation during the time. Today's current hits are a little more turbulent, there could be a lot of factors causing this - for example it is nearing summer, and summer anthems tend to have higher energy. In addition, political nature, current events and pop culture also 
+would have a huge effect on current hits. 
+
+- I do want to point out possible discrepancies in the data - I'm comparing today's current hits with top hits over various decades. Again, these
+current hits (the popular songs today on spotify), while the songs I'm analyzing from the 90's - 60's are complied songs from the whole decade. 
+Thus it's a bit of a stretch to compare today's hits with previous decades but it is helpful to see a general trend of sentiment as the years pass.
+
+## Analysis 
+
+- It is apparent that as you go backwards in time, there are a greater amount of songs falling into the 'sad/depressing' catagory rather than the 'turbulent' catagory. Again theres a lot of factors to consider for this, one of the biggest ones being context - the 60's and 70's included such as the Vietnam War, inflation, civil rights movements etc, that largely influenced music genres & popularity of songs. 
+
+- Again, another discrepenacy I want to point out is measure of popularity. Spotify measures popularity of songs by number of listens on their app. Unfortunately the Spotify API doesn't disclose song play counts and they have the popularity of song listed numerically. 
+
+## Analysis 
+
+- However, Spotify wasn't available 10 years ago - thus popularity of songs in the 90's didn't such thing have play counts (on Spotify at least). Thus, it's unclear how exactly Spotify measures popularity for songs before its time. Spotify has top hits playlists for each decade and I simply took the data from there. In an ideal world the data would be much more accurate if popularity was measured against the same standards. 
+
+## Analysis By Artist
+
+- You can search any artist in the shiny app, but for analysis I'll focus on a single artist - Ed Sheeran 
+
+## Lyrical Sentiment Analysis 
+
+```{r}
+ #Get sentiments from library 
+  nrc_anticipation <- get_sentiments("nrc") %>% 
+      filter(sentiment == "anticipation")
+    
+  nrc_anger <- get_sentiments("nrc") %>% 
+      filter(sentiment == "anger")
+     
+  nrc_joy <- get_sentiments("nrc") %>% 
+      filter(sentiment == "joy")
+      
+      alist = c('x','+', 'Divide','Loose Change')
+      total_lyrics = data.frame()
+      for (a in alist){
+          df <- data.frame(genius_album('Ed Sheeran', a))
+          total_lyrics <- rbind(total_lyrics,df)
+      }
+      total_lyrics <- total_lyrics %>%
+          select(lyric)
+      
+      total_lyrics <- total_lyrics %>%
+          unnest_tokens(word, lyric) %>%  #split words
+          anti_join(stop_words)           # take out "a", "an", "the", etc.
+     
+     joy <- total_lyrics %>%
+        inner_join(nrc_joy) %>% count(word, sort = TRUE)
+
+     anticipation <- total_lyrics%>%
+        inner_join(nrc_anticipation) %>% count(word, sort = TRUE)
+  
+     anger <- total_lyrics %>%
+         inner_join(nrc_anger) %>% count(word, sort = TRUE)
+      
+      # get the sentiment 
+      sentiment <- total_lyrics %>%
+        inner_join(get_sentiments("bing")) %>% 
+        count(sentiment) %>% 
+        spread(sentiment, n, fill = 0) %>% 
+        mutate(sentiment = positive - negative) 
+     
+     # sentiments for every word in lyric
+     tidy_lyrics <- total_lyrics %>%
+        inner_join(get_sentiments("nrc"))
+     
+    nrc_plot_before <- tidy_lyrics %>%
+      group_by(sentiment) %>%
+      summarise(word_count = n()) %>%
+      ungroup() %>%
+      mutate(sentiment = reorder(sentiment, word_count)) 
+    
+    gg <- ggplot(data = nrc_plot_before, mapping = aes(x = reorder(sentiment, word_count), reorder(word_count,sentiment), fill = sentiment)) +
+          geom_bar(stat = "identity") +
+          coord_flip() +
+          theme(legend.position="none") + 
+          xlab("Sentiment") +
+          ylab("Frequency")
+    gg
+```
+
+## Lyrical Sentiment Analysis
+
+- According to his lyrics, Ed Sheeran's discography is pretty postive - and I've seen this trend in almost every 
+artist as well. There is a fair amount of negativity but every album has their ballads. 
+
+- I think it's safe to say happy songs sell well! 
+
+## Sentiment Analysis By Song 
+
+```{r}
+      audioFeatures <- get_artist_audio_features(artist_uri = '6eUKZXaKkcviH0Ku9w2n3V',use_artist_uri = TRUE)
+      
+      #get popularity & valence columns 
+      audioFeatures <- audioFeatures %>%
+        select(track_name, energy, valence, track_popularity, album_name)
+      
+      gg <- ggplot(audioFeatures, aes(x=valence, y=energy)) +
+              geom_point(audioFeatures, mapping=aes(x=valence, y=energy, track_name = track_name, colour = album_name), show.legend = F) +
+              xlim(c(0, 1)) +
+              ylim(c(0, 1)) +
+              labs(
+                   y="Energy",
+                   x="Valence") +
+              geom_vline(xintercept = 0.5) + geom_hline(yintercept = 0.5) +
+              annotate("text", x = 0.05, y = 0, label = "Depressing") + 
+              annotate("text", x = 0.03, y = 0.98, label = "Angry") + 
+              annotate("text", x = 0.98, y = 0.98, label = "Happy") + 
+              annotate("text", x = 0.98, y = 0, label = "Mellow")
+
+      ggplotly(gg) %>% config(displayModeBar = F)
+```
+
+## Sentiment Analysis By Song 
+- Ed Sheeran is a artist known for his acoustic songs and ballads - therefore it's expected that many of 
+his songs fall into the fairly 'sad' catagory, as he doesn't have too many high energy songs
+
+- Another discrepancy to point out - we know Ed Sheeran's overall sentiment is mostly postive from the bar
+graph on the previous slide. However most of his songs are slower & softer, yet not necessarily always sad, but the lack of tempo classifies it as sad. 
+
+## Most Frequent Words 
+
+```{r}
+      alist = c('x','+', 'Divide', 'Loose Change')
+      total_lyrics = data.frame()
+      for (a in alist){
+          df <- data.frame(genius_album('Ed Sheeran', a))
+          total_lyrics <- rbind(total_lyrics,df)
+      }
+      total_lyrics <- total_lyrics %>%
+          select(lyric)
+      
+      total_lyrics <- total_lyrics %>%
+          unnest_tokens(word, lyric) %>%  #split words
+          anti_join(stop_words) %>%       # take out "a", "an", "the", etc.
+          count(word, sort = TRUE)      # count occurrences
+      
+      total_lyrics <- head(total_lyrics,20)
+      
+       word_plot <- ggplot(data = total_lyrics, aes(reorder(word,n), n, fill = word)) +
+          geom_bar(stat = "identity") +
+          coord_flip() +
+          theme(legend.position="none") +
+          xlab("Frequency") +
+          ylab("Word")
+       
+      word_plot
+```
+
+## Most Frequent Words 
+- To no surpise, Ed Sheeran's most used word is love! Which makes sense given that 
+all of his songs revolve around relationships and past experiences. 
+- He also uses 'home', 'eyes', and 'heart' often. Also note the word 'ye' (I think that's from his song titled 'Bibia Ye Ye')
+- We know Ed Sheeran writes all of this songs - I think it's apparent that the lyrics he writes are genuine and sentimental - it's one of his signifying trademarks. 

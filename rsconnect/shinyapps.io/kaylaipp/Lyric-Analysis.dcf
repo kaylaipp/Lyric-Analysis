@@ -1,0 +1,13 @@
+name: Lyric-Analysis
+title: Lyric-Analysis
+username:
+account: kaylaipp
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 338170
+bundleId: 1359073
+url: https://kaylaipp.shinyapps.io/Lyric-Analysis/
+when: 1525645520.70742
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: slides.Rmd
